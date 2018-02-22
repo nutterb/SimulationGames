@@ -1,0 +1,64 @@
+#' @name pingpong_match
+#' @title Simulate a Ping Pong Match
+#' 
+#' @description Ping pong matches are simulated and the winner declared based
+#'   on random processes. It is assumed that the probability of winning each
+#'   point is independent on previous points.
+#'   
+#' @param win_prob \code{numeric(1)} on the interval (0, 1). The probability
+#'   that the player of interest wins.
+#' @param win_score \code{numeric(1)} on the interval [1, Inf). The score at 
+#'   which a player wins.
+#' @param win_by \code{numeric(1)} on the interval [1, Inf). The number of 
+#'   points by which a player must lead to win the match.  For instance, win 
+#'   by two implies that when a match is tied at 20-20, the match will not 
+#'   end at the next point, as the winner of the next point will only 
+#'   lead by one.
+#'   
+#' @source 
+#' Inspired by 
+#' https://stats.stackexchange.com/questions/329521/if-i-have-a-58-chance-of-winning-a-point-whats-the-chance-of-me-winning-a-pin
+#'   
+#' @export
+
+pingpong_match <- function(win_prob = 0.50, win_score = 21, win_by = 2){
+  coll <- checkmate::makeAssertCollection()
+  
+  checkmate::assert_numeric(x = win_prob,
+                            len = 1,
+                            lower = 0,
+                            upper = 1,
+                            add=  coll)
+  
+  checkmate::assert_integerish(x = win_score,
+                               len = 1,
+                               lower = 1,
+                               add = coll)
+  
+  checkmate::assert_integerish(x = win_by,
+                               len = 1,
+                               lower = 1,
+                               add = coll)
+  
+  checkmate::reportAssertions(coll)
+  
+  play1_win <- 0
+  play2_win <- 0
+  lead <- 0
+  
+  repeat{
+    win1 <- sample(0:1, 
+                   size = 1,
+                   prob = c(1 - win_prob, win_prob))
+    play1_win <- play1_win + win1
+    play2_win <- play2_win + (1 - win1)
+    lead <- abs(play1_win - play2_win)
+    
+    if ((play1_win >= win_score || play2_win >= win_score) && lead >= win_by)
+    {
+      break
+    }
+  }
+  
+  play1_win > play2_win
+}
